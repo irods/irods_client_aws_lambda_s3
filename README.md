@@ -12,8 +12,9 @@ Runtime: `Python 3.7`
 
 Environment Variables:
 
-    `IRODS_COLLECTION_PREFIX` : `/tempZone/home/rods/lambda`
-    `IRODS_ENVIRONMENT_SSM_PARAMETER_NAME` :  irods_default_environment`
+`IRODS_COLLECTION_PREFIX` : `/tempZone/home/rods/lambda`
+
+`IRODS_ENVIRONMENT_SSM_PARAMETER_NAME` :  `irods_default_environment`
 
 ### Triggers
 
@@ -27,7 +28,7 @@ The connection information is stored in the `AWS Systems Manager > Parameter Sto
 
 Create a parameter with:
 
-1 - Name (of your choice):
+1 - Name (must match `IRODS_ENVIRONMENT_SSM_PARAMETER_NAME` above):
 ```
 irods_default_environment
 ```
