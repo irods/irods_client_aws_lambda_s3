@@ -42,7 +42,7 @@ def lambda_handler(event, context):
                     # create collection
                     s3_prefix = os.path.dirname(s3_key)
                     s3_filename = os.path.basename(s3_key)
-                    physical_path_to_register_in_catalog = os.path.join('/', s3_bucket, s3_prefix, s3_filename)
+                    physical_path_to_register_in_catalog = os.path.join('/', s3_prefix, s3_filename)
                     irods_collection_name = os.path.join(irods_collection_prefix, s3_bucket, s3_prefix)
                     print(irods_collection_name)
                     session.collections.create(irods_collection_name, recurse=True)
