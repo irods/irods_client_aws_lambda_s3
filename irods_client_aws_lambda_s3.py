@@ -5,11 +5,12 @@ from irods.session import iRODSSession
 import os
 import time
 import urllib.parse
+import tempfile
+import ssl
 
 s3 = boto3.client('s3')
 ssm = boto3.client('ssm')
 
-# TODO - handle SSL if available
 # TODO - check bad/missing environment variables
 
 def lambda_handler(event, context):
@@ -33,11 +34,30 @@ def lambda_handler(event, context):
             s3_size = event['Records'][0]['s3']['object']['size']
             try:
                 # register the new s3 object into iRODS
+                ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH, cafile=None, capath=None, cadata=None)
+                if irods_env['irods_ssl_ca_certificate_string']:
+                    ssl_context.load_verify_locations(cadata=irods_env['irods_ssl_ca_certificate_string'])
+                ssl_settings = {'ssl_context': ssl_context}
+                try:
+                    for x in [  'irods_client_server_negotiation',
+                                'irods_client_server_policy',
+                                'irods_encryption_algorithm',
+                                'irods_encryption_key_size',
+                                'irods_encryption_num_hash_rounds',
+                                'irods_encryption_salt_size',
+                                'irods_ssl_verify_server',
+                                ]:
+                        if irods_env[x]:
+                            ssl_settings.update({x: irods_env[x]})
+                except KeyError as e:
+                    print('irods_environment is missing a required key')
+                    raise e
                 with iRODSSession(  host=irods_env['irods_host'],
                                     port=irods_env['irods_port'],
                                     user=irods_env['irods_user_name'],
                                     password=irods_env['irods_password'],
-                                    zone=irods_env['irods_zone_name']) as session:
+                                    zone=irods_env['irods_zone_name'],
+                                    **ssl_settings) as session:
 
                     # create collection
                     s3_prefix = os.path.dirname(s3_key)
@@ -59,17 +79,36 @@ def lambda_handler(event, context):
                     print('Registered [{}] as [{}][{}]'.format(physical_path_to_register_in_catalog, irods_env['irods_user_name'], irods_dataobj_logical_fullpath))
             except Exception as e:
                 print(e)
-                print('Error registering [{}] as [{}][{}]'.format(physical_path_to_register_in_catalog, irods_env['irods_user_name'], irods_dataobj_logical_fullpath))
+                print('Error registering [{}]'.format(physical_path_to_register_in_catalog))
                 raise e
 
         elif event['Records'][0]['eventName'] in ['ObjectRemoved:Delete']:
             print("S3 - ",event['Records'][0]['eventName'])
             try:
+                ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH, cafile=None, capath=None, cadata=None)
+                if irods_env['irods_ssl_ca_certificate_string']:
+                    ssl_context.load_verify_locations(cadata=irods_env['irods_ssl_ca_certificate_string'])
+                ssl_settings = {'ssl_context': ssl_context}
+                try:
+                    for x in [  'irods_client_server_negotiation',
+                                'irods_client_server_policy',
+                                'irods_encryption_algorithm',
+                                'irods_encryption_key_size',
+                                'irods_encryption_num_hash_rounds',
+                                'irods_encryption_salt_size',
+                                'irods_ssl_verify_server',
+                                ]:
+                        if irods_env[x]:
+                            ssl_settings.update({x: irods_env[x]})
+                except KeyError as e:
+                    print('irods_environment is missing a required key')
+                    raise e
                 with iRODSSession(  host=irods_env['irods_host'],
                                     port=irods_env['irods_port'],
                                     user=irods_env['irods_user_name'],
                                     password=irods_env['irods_password'],
-                                    zone=irods_env['irods_zone_name']) as session:
+                                    zone=irods_env['irods_zone_name'],
+                                    **ssl_settings) as session:
                     s3_prefix = os.path.dirname(s3_key)
                     s3_filename = os.path.basename(s3_key)
                     irods_collection_name = os.path.join(irods_collection_prefix, s3_bucket, s3_prefix)
