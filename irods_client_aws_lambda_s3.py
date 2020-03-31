@@ -20,18 +20,33 @@ def lambda_handler(event, context):
     irods_environment_ssm_parameter_name = os.environ['IRODS_ENVIRONMENT_SSM_PARAMETER_NAME']
     irods_collection_prefix = os.environ['IRODS_COLLECTION_PREFIX']
 
+    # get the event
+    # from s3 directly
+    if event['Records'][0]['s3']:
+        s3_event = event['Records'][0]
+    # or s3 wrapped by sns
+    elif event['Records'][0]['Sns'][0]['Message']['Records'][0]['s3']:
+        s3_event = event['Records'][0]['Sns'][0]['Message']['Records'][0]
+    # or s3 wrapped by sqs
+    elif event['Records'][0]['Sqs'][0]['Message']['Records'][0]['s3']:
+        s3_event = event['Records'][0]['Sqs'][0]['Message']['Records'][0]
+    # or not found
+    else:
+        print('Could not parse event as S3, SNS, or SQS.')
+        raise KeyError
+
     # get variables from event
-    s3_bucket = event['Records'][0]['s3']['bucket']['name']
-    s3_key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
+    s3_bucket = s3_event['s3']['bucket']['name']
+    s3_key = urllib.parse.unquote_plus(s3_event['s3']['object']['key'], encoding='utf-8')
 
     try:
         # get iRODS client environment from AWS Systems Manager > Parameter Store
         parameter = ssm.get_parameter(Name=irods_environment_ssm_parameter_name, WithDecryption=True)
         irods_env = json.loads(parameter['Parameter']['Value'])
 
-        if event['Records'][0]['eventName'] in ['ObjectCreated:Put','ObjectCreated:Copy']:
-            print("S3 - ",event['Records'][0]['eventName'])
-            s3_size = event['Records'][0]['s3']['object']['size']
+        if s3_event['eventName'] in ['ObjectCreated:Put','ObjectCreated:Copy']:
+            print("S3 - ",s3_event['eventName'])
+            s3_size = s3_event['s3']['object']['size']
             try:
                 # register the new s3 object into iRODS
                 ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH, cafile=None, capath=None, cadata=None)
@@ -82,8 +97,8 @@ def lambda_handler(event, context):
                 print('Error registering [{}]'.format(physical_path_to_register_in_catalog))
                 raise e
 
-        elif event['Records'][0]['eventName'] in ['ObjectRemoved:Delete']:
-            print("S3 - ",event['Records'][0]['eventName'])
+        elif s3_event['eventName'] in ['ObjectRemoved:Delete']:
+            print("S3 - ",s3_event['eventName'])
             try:
                 ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH, cafile=None, capath=None, cadata=None)
                 if irods_env['irods_ssl_ca_certificate_string']:
