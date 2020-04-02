@@ -76,18 +76,19 @@ def lambda_handler(event, context):
                     irods_dataobj_logical_fullpath = os.path.join(irods_collection_name,s3_filename)
                     obj = session.data_objects.get(irods_dataobj_logical_fullpath)
                     if len(obj.replicas) > 1:
-                    # if one of multiple replicas -> trim s3 replica
+                    # if one of multiple replicas -> unregister s3 replica only
                         for replica in obj.replicas:
                             if replica.resource_name == irods_env['irods_default_resource']:
-                                obj.unlink(replNum=replica.number, force=True) # does not go to trash
+                                options = {kw.REPL_NUM_KW: replica.number}
+                                obj.unregister(**options)
                     else:
-                    # if only replica -> delete (loss of metadata)
-                        obj.unlink(force=True) # does not go to trash
-                    print('Deleting [{}][{}]'.format(irods_env['irods_user_name'], irods_dataobj_logical_fullpath))
+                    # if only replica -> unregister (lose any associated metadata)
+                        obj.unregister()
+                    print('Unregistered [{}][{}]'.format(irods_env['irods_user_name'], irods_dataobj_logical_fullpath))
 
             except Exception as e:
                 print(e)
-                print('Error deleting [{}][{}]'.format(irods_env['irods_user_name'], irods_dataobj_logical_fullpath))
+                print('Error unregistering [{}][{}]'.format(irods_env['irods_user_name'], irods_dataobj_logical_fullpath))
                 raise e
         else:
             print("S3 - Unknown Event")
