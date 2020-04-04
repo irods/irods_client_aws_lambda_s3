@@ -22,14 +22,18 @@ def lambda_handler(event, context):
 
     # get the event
     # from s3 directly
-    if event['Records'][0]['s3']:
+    if 's3' in event['Records'][0]:
         s3_event = event['Records'][0]
-    # or s3 wrapped by sns
-    elif event['Records'][0]['Sns'][0]['Message']['Records'][0]['s3']:
-        s3_event = event['Records'][0]['Sns'][0]['Message']['Records'][0]
-    # or s3 wrapped by sqs
-    elif event['Records'][0]['Sqs'][0]['Message']['Records'][0]['s3']:
-        s3_event = event['Records'][0]['Sqs'][0]['Message']['Records'][0]
+    # or sns
+    elif 'Sns' in event['Records'][0]:
+        message = json.loads(event['Records'][0]['Sns']['Message'])
+        if 's3' in message['Records'][0]:
+            s3_event = message['Records'][0]
+    # or sqs
+    elif 'Sqs' in event['Records'][0]:
+        message = json.loads(event['Records'][0]['Sqs']['Message'])
+        if 's3' in message['Records'][0]:
+            s3_event = message['Records'][0]
     # or not found
     else:
         print('Could not parse event as S3, SNS, or SQS.')
@@ -80,7 +84,11 @@ def lambda_handler(event, context):
                     physical_path_to_register_in_catalog = os.path.join('/', s3_bucket, s3_prefix, s3_filename)
                     irods_collection_name = os.path.join(irods_collection_prefix, s3_bucket, s3_prefix)
                     print(irods_collection_name)
-                    session.collections.create(irods_collection_name, recurse=True)
+                    try:
+                        session.collections.create(irods_collection_name, recurse=True)
+                    except Exception as e:
+                        print(e)
+                        print('session.collections.create returned CollectionDoesNotExist on get()... TODO: investigate...')
 
                     # register the data object
                     irods_dataobj_logical_fullpath = os.path.join(irods_collection_name,s3_filename)
