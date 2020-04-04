@@ -48,6 +48,13 @@ def lambda_handler(event, context):
         parameter = ssm.get_parameter(Name=irods_environment_ssm_parameter_name, WithDecryption=True)
         irods_env = json.loads(parameter['Parameter']['Value'])
 
+        # if no default resource is defined in the environment, derive it from the source S3 bucket
+        # this allows for multi-bucket support to this single lambda deployment
+        if 'irods_default_resource' in irods_env:
+            target_irods_resource = irods_env['irods_default_resource']
+        else:
+            target_irods_resource = '{}_s3'.format(s3_bucket)
+
         if s3_event['eventName'] in ['ObjectCreated:Put','ObjectCreated:Copy']:
             print("S3 - ",s3_event['eventName'])
             s3_size = s3_event['s3']['object']['size']
@@ -95,7 +102,7 @@ def lambda_handler(event, context):
                     options = {}
                     options[kw.DATA_SIZE_KW] = str(s3_size)
                     options[kw.DATA_MODIFY_KW] = str(int(time.time()))
-                    options[kw.DEST_RESC_NAME_KW] = irods_env['irods_default_resource']
+                    options[kw.DEST_RESC_NAME_KW] = target_irods_resource
                     session.data_objects.register(  physical_path_to_register_in_catalog,
                                                     irods_dataobj_logical_fullpath,
                                                     **options)
@@ -140,7 +147,7 @@ def lambda_handler(event, context):
                     if len(obj.replicas) > 1:
                     # if one of multiple replicas -> unregister s3 replica only
                         for replica in obj.replicas:
-                            if replica.resource_name == irods_env['irods_default_resource']:
+                            if replica.resource_name == target_irods_resource:
                                 options = {kw.REPL_NUM_KW: replica.number}
                                 obj.unregister(**options)
                     else:
