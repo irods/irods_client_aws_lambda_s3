@@ -5,7 +5,6 @@ from irods.session import iRODSSession
 import os
 import time
 import urllib.parse
-import tempfile
 import ssl
 
 s3 = boto3.client('s3')
