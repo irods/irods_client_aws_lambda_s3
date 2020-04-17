@@ -60,7 +60,7 @@ def lambda_handler(event, context):
             try:
                 # register the new s3 object into iRODS
                 ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH, cafile=None, capath=None, cadata=None)
-                if irods_env['irods_ssl_ca_certificate_string']:
+                if 'irods_ssl_ca_certificate_string' in irods_env:
                     ssl_context.load_verify_locations(cadata=irods_env['irods_ssl_ca_certificate_string'])
                 ssl_settings = {'ssl_context': ssl_context}
                 try:
@@ -72,7 +72,7 @@ def lambda_handler(event, context):
                                 'irods_encryption_salt_size',
                                 'irods_ssl_verify_server',
                                 ]:
-                        if irods_env[x]:
+                        if x in irods_env:
                             ssl_settings.update({x: irods_env[x]})
                 except KeyError as e:
                     print('irods_environment is missing a required key')
@@ -115,7 +115,7 @@ def lambda_handler(event, context):
             print("S3 - ",s3_event['eventName'])
             try:
                 ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH, cafile=None, capath=None, cadata=None)
-                if irods_env['irods_ssl_ca_certificate_string']:
+                if 'irods_ssl_ca_certificate_string' in irods_env:
                     ssl_context.load_verify_locations(cadata=irods_env['irods_ssl_ca_certificate_string'])
                 ssl_settings = {'ssl_context': ssl_context}
                 try:
@@ -127,7 +127,7 @@ def lambda_handler(event, context):
                                 'irods_encryption_salt_size',
                                 'irods_ssl_verify_server',
                                 ]:
-                        if irods_env[x]:
+                        if x in irods_env:
                             ssl_settings.update({x: irods_env[x]})
                 except KeyError as e:
                     print('irods_environment is missing a required key')
