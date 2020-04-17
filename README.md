@@ -5,10 +5,9 @@ This AWS Lambda function updates an iRODS Catalog with events that occur in one 
 Files created, renamed, or deleted in S3 appear quickly in iRODS.
 
 The following AWS configurations are supported at this time:
- - S3 -> Lambda -> iRODS
- - S3 -> SNS -> Lambda -> iRODS
- - S3 -> SQS -> Lambda -> iRODS
-
+- S3 -> Lambda -> iRODS
+- S3 -> SNS -> Lambda -> iRODS
+- S3 -> SQS -> Lambda -> iRODS
 
 ### Lambda Function
 
@@ -21,6 +20,8 @@ Environment Variables:
 `IRODS_COLLECTION_PREFIX` : `/tempZone/home/rods/lambda`
 
 `IRODS_ENVIRONMENT_SSM_PARAMETER_NAME` :  `irods_default_environment`
+
+`IRODS_MULTIBUCKET_SUFFIX` : `_s3`
 
 ### Triggers
 
@@ -89,3 +90,4 @@ By default, the Lambda function will append `_s3` to the incoming bucket name.
 
 For example, if the incoming event comes from bucket `example_bucket`, then the iRODS resource that would be targeted would be `example_bucket_s3`.
 
+However, if `IRODS_MULTIBUCKET_SUFFIX` is defined as `-S3Resc`, the the iRODS resource that would be targeted would be `example_bucket-S3Resc`.

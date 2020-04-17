@@ -18,6 +18,7 @@ def lambda_handler(event, context):
     # get variables from environment
     irods_environment_ssm_parameter_name = os.environ['IRODS_ENVIRONMENT_SSM_PARAMETER_NAME']
     irods_collection_prefix = os.environ['IRODS_COLLECTION_PREFIX']
+    irods_multibucket_suffix = os.environ['IRODS_MULTIBUCKET_SUFFIX']
 
     # get the event
     # from s3 directly
@@ -47,11 +48,15 @@ def lambda_handler(event, context):
         parameter = ssm.get_parameter(Name=irods_environment_ssm_parameter_name, WithDecryption=True)
         irods_env = json.loads(parameter['Parameter']['Value'])
 
-        # if no default resource is defined in the environment, derive it from the source S3 bucket
-        # this allows for multi-bucket support to this single lambda deployment
+        # determine the target_irods_resource
         if 'irods_default_resource' in irods_env:
+            # use defined target resource
             target_irods_resource = irods_env['irods_default_resource']
+        elif 'irods_multibucket_suffix' in irods_env:
+            # derive target resource from source s3 bucket and multibucket_suffix
+            target_irods_resource = '{}{}'.format(s3_bucket, irods_multibucket_suffix)
         else:
+            # not defined, derive target resource with default '_s3' suffix
             target_irods_resource = '{}_s3'.format(s3_bucket)
 
         if s3_event['eventName'] in ['ObjectCreated:Put','ObjectCreated:Copy']:
