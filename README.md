@@ -1,8 +1,14 @@
 # irods_client_aws_lambda_s3
 
-This AWS Lambda function updates an iRODS Catalog with events that occur in an S3 bucket.
+This AWS Lambda function updates an iRODS Catalog with events that occur in one or more S3 buckets.
 
-Files created, renamed, or deleted in S3 appear quickly in iRODS.                
+Files created, renamed, or deleted in S3 appear quickly in iRODS.
+
+The following AWS configurations are supported at this time:
+ - S3 -> Lambda -> iRODS
+ - S3 -> SNS -> Lambda -> iRODS
+ - S3 -> SQS -> Lambda -> iRODS
+
 
 ### Lambda Function
 
@@ -54,4 +60,32 @@ SecureString
     "irods_zone_name": "tempZone"
 }
 ```
+
+## Configuration Options
+
+### SSL Support
+
+If the Lambda needs to be configured to connect with an SSL-enabled iRODS Zone, the following additional keys need to be included in the environment in the Parameter Store:
+```
+    "irods_client_server_negotiation": "request_server_negotiation",
+    "irods_client_server_policy": "CS_NEG_REQUIRE",
+    "irods_encryption_algorithm": "AES-256-CBC",
+    "irods_encryption_key_size": 32,
+    "irods_encryption_num_hash_rounds": 16,
+    "irods_encryption_salt_size": 8,
+    "irods_ssl_verify_server": "cert",
+    "irods_ssl_ca_certificate_string": "-----BEGIN CERTIFICATE-----\nMIIDrTCCApWgAwIBAgIJALolx2/2MWQfMA0GCSqGSIb3DQEBCwUAMG0xCzAJBgNVBAsdfdfVJFTkNJMR8wHQYDVQQDsgdgYFbPUxSHtQb6h8i8VVlfLJbuf64MizzArvQozspeXEjToLD1r9Cms\n-----END CERTIFICATE-----"
+```
+
+Note the contents of the `irods_ssl_ca_certificate_string` are identical to the contents of an SSL cert, with two newline characters separating the prefix, the cert string, and the suffix.
+
+### Multi-Bucket Support
+
+This Lambda function can be configured to receive events from multiple sources at the same time.
+
+If the `irods_default_resource` is *NOT* defined in the environment in the Parameter Store, then the Lambda function will derive the name of a target iRODS Resource.
+
+By default, the Lambda function will append `_s3` to the incoming bucket name.
+
+For example, if the incoming event comes from bucket `example_bucket`, then the iRODS resource that would be targeted would be `example_bucket_s3`.
 
