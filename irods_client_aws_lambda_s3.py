@@ -10,15 +10,16 @@ import ssl
 s3 = boto3.client('s3')
 ssm = boto3.client('ssm')
 
-# TODO - check bad/missing environment variables
-
 def lambda_handler(event, context):
     print("Received event: " + json.dumps(event, indent=4))
 
     # get variables from environment
     irods_environment_ssm_parameter_name = os.environ['IRODS_ENVIRONMENT_SSM_PARAMETER_NAME']
     irods_collection_prefix = os.environ['IRODS_COLLECTION_PREFIX']
-    irods_multibucket_suffix = os.environ['IRODS_MULTIBUCKET_SUFFIX']
+    if 'IRODS_MULTIBUCKET_SUFFIX' in os.environ:
+        irods_multibucket_suffix = os.environ['IRODS_MULTIBUCKET_SUFFIX']
+    else:
+        irods_multibucket_suffix = '_s3'
 
     # get the event
     # from s3 directly
@@ -52,12 +53,9 @@ def lambda_handler(event, context):
         if 'irods_default_resource' in irods_env:
             # use defined target resource
             target_irods_resource = irods_env['irods_default_resource']
-        elif 'irods_multibucket_suffix' in irods_env:
-            # derive target resource from source s3 bucket and multibucket_suffix
-            target_irods_resource = '{}{}'.format(s3_bucket, irods_multibucket_suffix)
         else:
-            # not defined, derive target resource with default '_s3' suffix
-            target_irods_resource = '{}_s3'.format(s3_bucket)
+            # derive target resource from source s3 bucket and irods_multibucket_suffix
+            target_irods_resource = '{}{}'.format(s3_bucket, irods_multibucket_suffix)
 
         if s3_event['eventName'] in ['ObjectCreated:Put','ObjectCreated:Copy']:
             print("S3 - ",s3_event['eventName'])
