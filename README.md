@@ -75,10 +75,10 @@ If the Lambda needs to be configured to connect with an SSL-enabled iRODS Zone, 
     "irods_encryption_num_hash_rounds": 16,
     "irods_encryption_salt_size": 8,
     "irods_ssl_verify_server": "cert",
-    "irods_ssl_ca_certificate_string": "-----BEGIN CERTIFICATE-----\nMIIDrTCCApWgAwIBAgIJALolx2/2MWQfMA0GCSqGSIb3DQEBCwUAMG0xCzAJBgNVBAsdfdfVJFTkNJMR8wHQYDVQQDsgdgYFbPUxSHtQb6h8i8VVlfLJbuf64MizzArvQozspeXEjToLD1r9Cms\n-----END CERTIFICATE-----"
+    "irods_ssl_ca_certificate_file": "irods.crt"
 ```
 
-Note the contents of the `irods_ssl_ca_certificate_string` are identical to the contents of an SSL cert, with two newline characters separating the prefix, the cert string, and the suffix.
+Note `irods_ssl_ca_certificate_file` is a relative path to a certificate file (or [certificate chain file](https://docs.python.org/3/library/ssl.html#ssl-certificates)) within the Lambda package.
 
 ### Multi-Bucket Support
 
