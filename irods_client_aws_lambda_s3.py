@@ -63,8 +63,8 @@ def lambda_handler(event, context):
             try:
                 # register the new s3 object into iRODS
                 ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH, cafile=None, capath=None, cadata=None)
-                if 'irods_ssl_ca_certificate_string' in irods_env:
-                    ssl_context.load_verify_locations(cadata=irods_env['irods_ssl_ca_certificate_string'])
+                if 'irods_ssl_ca_certificate_file' in irods_env:
+                    ssl_context.load_verify_locations(cafile=irods_env['irods_ssl_ca_certificate_file'])
                 ssl_settings = {'ssl_context': ssl_context}
                 try:
                     for x in [  'irods_client_server_negotiation',
@@ -118,8 +118,8 @@ def lambda_handler(event, context):
             print("S3 - ",s3_event['eventName'])
             try:
                 ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH, cafile=None, capath=None, cadata=None)
-                if 'irods_ssl_ca_certificate_string' in irods_env:
-                    ssl_context.load_verify_locations(cadata=irods_env['irods_ssl_ca_certificate_string'])
+                if 'irods_ssl_ca_certificate_file' in irods_env:
+                    ssl_context.load_verify_locations(cafile=irods_env['irods_ssl_ca_certificate_file'])
                 ssl_settings = {'ssl_context': ssl_context}
                 try:
                     for x in [  'irods_client_server_negotiation',
