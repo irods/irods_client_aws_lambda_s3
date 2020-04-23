@@ -31,10 +31,11 @@ def lambda_handler(event, context):
         if 's3' in message['Records'][0]:
             s3_event = message['Records'][0]
     # or sqs
-    elif 'Sqs' in event['Records'][0]:
-        message = json.loads(event['Records'][0]['Sqs']['Message'])
-        if 's3' in message['Records'][0]:
-            s3_event = message['Records'][0]
+    elif 'eventSource' in event['Records'][0]:
+        if (event['Records'][0]['eventSource'] == 'aws:sqs'):
+            message = json.loads(event['Records'][0]['body'])
+            if 's3' in message['Records'][0]:
+                s3_event = message['Records'][0]
     # or not found
     else:
         print('Could not parse event as S3, SNS, or SQS.')
