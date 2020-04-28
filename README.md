@@ -9,6 +9,8 @@ The following AWS configurations are supported at this time:
 - S3 -> SNS -> Lambda -> iRODS
 - S3 -> SQS -> Lambda -> iRODS
 
+iRODS is assumed to have the target S3 Storage Resource(s) configured with `HOST_MODE=cacheless_attached`.
+
 ### Lambda Function
 
 The lambda function: `irods_client_aws_lambda_s3.py`
