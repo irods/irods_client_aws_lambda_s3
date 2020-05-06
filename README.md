@@ -11,6 +11,8 @@ The following AWS configurations are supported at this time:
 
 iRODS is assumed to have the target S3 Storage Resource(s) configured with `HOST_MODE=cacheless_attached`.
 
+If SQS is involved, it is assumed to be configured with `batch_size = 1`.
+
 ### Lambda Function
 
 The lambda function: `irods_client_aws_lambda_s3.py`
