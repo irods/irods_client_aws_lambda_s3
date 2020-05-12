@@ -9,13 +9,15 @@ The following AWS configurations are supported at this time:
 - S3 -> SNS -> Lambda -> iRODS
 - S3 -> SQS -> Lambda -> iRODS
 
-iRODS is assumed to have the target S3 Storage Resource(s) configured with `HOST_MODE=cacheless_attached`.
+iRODS is assumed to have its associated S3 Storage Resource(s) configured with `HOST_MODE=cacheless_attached`.
 
 If SQS is involved, it is assumed to be configured with `batch_size = 1`.
 
-### Lambda Function
+## Configuration
 
-The lambda function: `irods_client_aws_lambda_s3.py`
+### Function
+
+Handler: `irods_client_aws_lambda_s3.lambda_handler`
 
 Runtime: `Python 3.7`
 
@@ -39,22 +41,17 @@ The connection information is stored in the `AWS Systems Manager > Parameter Sto
 
 Create a parameter with:
 
-1 - Name (must match `IRODS_ENVIRONMENT_SSM_PARAMETER_NAME` above):
+Name (must match `IRODS_ENVIRONMENT_SSM_PARAMETER_NAME` above):
 ```
 irods_default_environment
 ```
 
-2 - Description:
-```
-For use with iRODS Client AWS Lambda S3
-```
-
-3 - Type:
+Type:
 ```
 SecureString
 ```
 
-4 - Value:
+Value:
 ```
 {
     "irods_default_resource": "s3Resc",
