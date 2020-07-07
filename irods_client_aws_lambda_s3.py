@@ -115,7 +115,7 @@ def lambda_handler(event, context):
                 print('Error registering [{}]'.format(physical_path_to_register_in_catalog))
                 raise e
 
-        elif s3_event['eventName'] in ['ObjectRemoved:Delete']:
+        elif s3_event['eventName'] in ['ObjectRemoved:Delete','ObjectRemoved:DeleteMarkerCreated']:
             print("S3 - ",s3_event['eventName'])
             try:
                 ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH, cafile=None, capath=None, cadata=None)
