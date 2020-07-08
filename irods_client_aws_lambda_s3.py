@@ -58,7 +58,7 @@ def lambda_handler(event, context):
             # derive target resource from source s3 bucket and irods_multibucket_suffix
             target_irods_resource = '{}{}'.format(s3_bucket, irods_multibucket_suffix)
 
-        if s3_event['eventName'] in ['ObjectCreated:Put','ObjectCreated:Copy']:
+        if s3_event['eventName'] in ['ObjectCreated:Put','ObjectCreated:Copy','ObjectCreated:CompleteMultipartUpload']:
             print("S3 - ",s3_event['eventName'])
             s3_size = s3_event['s3']['object']['size']
             try:
